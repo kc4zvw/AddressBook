@@ -1,0 +1,116 @@
+#!/usr/bin/python -u
+
+###------------------------------------------------------###
+#
+#    Author : David Billsbrough <kc4zvw@earthlink.net>
+#   Created : Tueday, November 16, 1999 at 09:08 PM (EST)
+#   License : GNU General Public License - version 2
+#   Version : $Revision: 1.1 $
+#  Warranty : None
+#
+#   Purpose : Convert an elm address book for use with
+#           : Netscape Communicator.
+#
+#  $Id: elm2mozilla,v 1.1 2001/05/29 16:40:08 kc4zvw Exp kc4zvw $
+#
+###------------------------------------------------------###
+
+import os
+import string
+import time
+
+def get_home_dir():
+	myHOME = os.environ["HOME"]
+	print "My $HOME directory is %s.\n" % myHOME
+	return myHOME
+
+def get_timestamp():
+	# return UTC date in format of "19991120120000Z"
+	timetuple = time.gmtime(time.time())
+	return time.strftime("%Y%m%d%H%M%SZ", timetuple)
+
+def delete_comment(name, pos):
+	return name[0:pos]
+
+def get_firstname(name, pos):
+	return name[pos+2:]
+
+def get_lastname(name, pos):
+	return name[0:pos]
+
+def get_fullname(first_name, last_name):
+	full_name = first_name + " " + last_name
+	return full_name
+
+def display_entry(alias, name, email):
+	print "Converting %s (%s)." % (name, alias)
+	#print "   name: \"%s\"" % name
+	#print " e-mail: %s" % email
+	#print ""
+
+def write_ns_entry(alias, first, last, email):
+	fullname = get_fullname(first, last)
+	timestamp = get_timestamp()
+
+	output.write("dn: cn=%s,mail=%s\n" % (fullname, email))
+	output.write("modifytimestamp: %s\n" % timestamp)
+	output.write("cn: %s\n" % fullname)
+	output.write("mail: %s\n" % email)
+	output.write("xmozillausehtmlmail: FALSE\n")
+	output.write("givenname: %s\n" % first)
+	output.write("sn: %s\n" % last)
+	output.write("xmozillauseconferenceserver: 0\n")
+	output.write("xmozillanickname: %s\n" % alias)
+	output.write("objectclass: top\n")
+	output.write("objectclass: person\n")
+	output.write("\n")
+
+def process_line(aline):
+	pos1 = pos2 = 0
+	first = last = ""
+
+	list = string.split(aline[:-1], " = ")
+
+	alias = list[0]
+	name = list[1]
+	email = list[2]
+
+	pos1 = string.find(name, ',')				# search for a comma
+	pos2 = string.find(name, ';')				# search for a semicolon
+	#print "comma at '%d'; semicolon at '%d'" % (pos1, pos2)
+
+	if (pos1 > 0) :
+		name = delete_comment(name, pos1)
+
+	if (pos2 > 0) :
+		first = get_firstname(name, pos2)
+		last = get_lastname(name, pos2)
+		name = get_fullname(first, last)
+
+	display_entry(alias, name, email)			# display progress
+	write_ns_entry(alias, first, last, email)	# write single LDIF entry
+
+
+###-------------------- Main Routine --------------------###
+
+home = get_home_dir()
+
+elm = string.join((home, ".elm", "aliases.text"), os.sep)
+ldif = string.join((home, "addrbook.ldif"), os.sep)
+
+print "The elm mail alias file is %s." % elm
+print "The Netscape address book file is %s." % ldif
+print
+
+input = open(elm, 'r')
+output = open(ldif, 'w')
+
+for line in input.readlines():
+	process_line(line)
+
+input.close() 
+output.close()
+
+print "Conversion completed."
+
+# End of Program
