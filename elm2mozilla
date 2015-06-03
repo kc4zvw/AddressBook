@@ -1,19 +1,19 @@
 #!/usr/bin/python -u
 
-###------------------------------------------------------###
+###--------------------------------------------------------------------------###
 #
-#    Author : David Billsbrough <kc4zvw@earthlink.net>
+#    Author : David Billsbrough <billsbrough@gmail.com>
 #   Created : Tueday, November 16, 1999 at 09:08 PM (EST)
 #   License : GNU General Public License - version 2
-#   Version : $Revision: 1.1 $
+#   Version : $$
 #  Warranty : None
 #
-#   Purpose : Convert an elm address book for use with
-#           : Netscape Communicator.
+#   Purpose : Convert an elm address book for use with email client that can
+#			: import a LDIF formatted file.
 #
-#  $Id: elm2mozilla,v 1.1 2001/05/29 16:40:08 kc4zvw Exp kc4zvw $
+#  $Id: elm2mozilla,v 1.5 2015/06/03 14:36:06 kc4zvw Exp kc4zvw $
 #
-###------------------------------------------------------###
+###--------------------------------------------------------------------------###
 
 import os
 import string
@@ -25,9 +25,9 @@ def get_home_dir():
 	return myHOME
 
 def get_timestamp():
-	# return UTC date in format of "19991120120000Z"
+	# return UTC date in format of "19991120T120000Z"
 	timetuple = time.gmtime(time.time())
-	return time.strftime("%Y%m%d%H%M%SZ", timetuple)
+	return time.strftime("%Y%m%dT%H%M%SZ", timetuple)
 
 def delete_comment(name, pos):
 	return name[0:pos]
@@ -48,7 +48,7 @@ def display_entry(alias, name, email):
 	#print " e-mail: %s" % email
 	#print ""
 
-def write_ns_entry(alias, first, last, email):
+def write_new_entry(alias, first, last, email):
 	fullname = get_fullname(first, last)
 	timestamp = get_timestamp()
 
@@ -88,7 +88,7 @@ def process_line(aline):
 		name = get_fullname(first, last)
 
 	display_entry(alias, name, email)			# display progress
-	write_ns_entry(alias, first, last, email)	# write single LDIF entry
+	write_new_entry(alias, first, last, email)	# write single LDIF entry
 
 
 ###-------------------- Main Routine --------------------###
@@ -99,7 +99,7 @@ elm = string.join((home, ".elm", "aliases.text"), os.sep)
 ldif = string.join((home, "addrbook.ldif"), os.sep)
 
 print "The elm mail alias file is %s." % elm
-print "The Netscape address book file is %s." % ldif
+print "The Mozilla LDIF address book import file is %s." % ldif
 print
 
 input = open(elm, 'r')
@@ -113,4 +113,4 @@ output.close()
 
 print "Conversion completed."
 
-# End of Program
+# End of program
